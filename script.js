@@ -25,13 +25,17 @@ function initForm(gameElement) {
    let startingPlayerSide = form.querySelector('input[name="side"]:checked').value;
     form.classList.add("hidden");
     gameElement.classList.remove("hidden");
-    const player1 = Player(player1Name, startingPlayerSide);
-    const player2 = Player(player2Name, startingPlayerSide === "X" ? "O" : "X");
+    playerModule.initPlayers(player1Name, player2Name, startingPlayerSide);
     gameBoard.setCurrentPlayer(startingPlayerSide);
     })
 }
 
-    const displayController = (function (){
+
+function Player (name, side) {
+    return { name, side };
+}
+
+const displayController = (function (){
 
     function handleClick(clickedSquare) {
         const squareIndex = clickedSquare.dataset.index;
@@ -44,17 +48,43 @@ function initForm(gameElement) {
     }
 
     function handleWin() {
+        winningside = gameBoard.getCurrentPlayer();
+        let champion;
+        if (playerModule.player1.side === winningside) {
+            champion = playerModule.player1.name;
+        }
+        else {
+            champion = playerModule.player2.name;
+        }
         const winBox = document.querySelector(".winbox");
         const gameElement = document.querySelector(".game");
         gameElement.classList.add("hidden")
-        winBox.textContent = `${gameBoard.getCurrentPlayer()} is the winner! Play again?`;
         winBox.classList.remove("hidden");
+        const winMsg = winBox.querySelector("#winmsg");
+        winMsg.textContent = `${champion} is the winner!  `;
+        const reset = document.querySelector("#reset");
+        reset.addEventListener("click", function(e) {
+            displayController.reset();
+        });
+    }
+
+    function reset() {
+        game = document.querySelector(".game")
+        game.classList.add("hidden");
+        gameboxes = game.querySelectorAll(".square");
+        for (const i of gameboxes) {
+            i.textContent = "";
+        }
+        document.querySelector(".winbox").classList.add("hidden");
+        document.querySelector(".form").classList.remove("hidden");
+        gameBoard.clearBoardState();
     }
     
-    const reset = document.querySelector(".reset");
     return {
         getStartingPlayerSide: () => startingPlayerSide,
-        handleClick
+        handleClick,
+        handleWin,
+        reset
     };
 })();
 
@@ -88,16 +118,33 @@ const gameBoard = (function () {
         }
     }
 
+    function clearBoardState() {
+        boardState.fill("");
+    }
+
     return  {
         checkForWin, 
         switchPlayer, 
         getCurrentPlayer: () => currentPlayer,
         updateBoardState,
-        setCurrentPlayer
+        setCurrentPlayer,
+        clearBoardState
     };
 })();
 
-const Player = function (name, side) {
-    this.name = name;
-    this.side = side;
-}
+const playerModule = (function () {
+    const player1 = Player("", "");
+    const player2 = Player("", "");
+
+    function initPlayers(player1Name, player2Name, startingPlayerSide) {
+        player1.name = player1Name;
+        player2.name = player2Name;
+        player1.side = startingPlayerSide;
+        player2.side = startingPlayerSide === "X" ? "O" : "X";
+    }
+    return {
+        player1,
+        player2,
+        initPlayers
+    }
+})();
