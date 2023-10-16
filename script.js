@@ -42,30 +42,39 @@ const displayController = (function (){
         clickedSquare.textContent = gameBoard.getCurrentPlayer();
         gameBoard.updateBoardState(squareIndex);
         if (gameBoard.checkForWin()) {
-            handleWin();
+            handleWin("win");
+        }
+        else if (gameBoard.checkForDraw()) {
+            handleWin("draw");
         }
         gameBoard.switchPlayer();
     }
 
-    function handleWin() {
+    function handleWin(status) { //and Draw
         winningside = gameBoard.getCurrentPlayer();
         let champion;
-        if (playerModule.player1.side === winningside) {
-            champion = playerModule.player1.name;
-        }
-        else {
-            champion = playerModule.player2.name;
-        }
         const winBox = document.querySelector(".winbox");
         const gameElement = document.querySelector(".game");
+        const winMsg = winBox.querySelector("#winmsg");
+        const reset = document.querySelector("#reset");
+        if (status === "win") {
+             if (playerModule.player1.side === winningside) {
+            champion = playerModule.player1.name;
+            }
+            else {
+                champion = playerModule.player2.name;
+            }
+            winMsg.textContent = `${champion} is the winner!  `;
+            
+        }
+        else if (status === "draw") {
+            winMsg.textContent = `It's a draw!`;
+        }
         gameElement.classList.add("hidden")
         winBox.classList.remove("hidden");
-        const winMsg = winBox.querySelector("#winmsg");
-        winMsg.textContent = `${champion} is the winner!  `;
-        const reset = document.querySelector("#reset");
         reset.addEventListener("click", function(e) {
-            displayController.reset();
-        });
+                displayController.reset();
+            });  
     }
 
     function reset() {
@@ -109,8 +118,11 @@ const gameBoard = (function () {
             if (boardState[a] === currentPlayer && boardState[b] === currentPlayer && boardState[c] === currentPlayer) {
                 return true;
             }
-    
+            
         }
+    }
+    function checkForDraw() {
+        return !boardState.includes("");
     }
     function updateBoardState(squareIndex) {
         if (boardState[squareIndex] === ""){
@@ -128,7 +140,8 @@ const gameBoard = (function () {
         getCurrentPlayer: () => currentPlayer,
         updateBoardState,
         setCurrentPlayer,
-        clearBoardState
+        clearBoardState,
+        checkForDraw
     };
 })();
 
